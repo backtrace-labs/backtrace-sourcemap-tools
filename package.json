@@ -1,0 +1,23 @@
+{
+  "name": "backtrace-sourcemap",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KrzaQ/backtrace-sourcemap-helper.git"
+  },
+  "bin": {
+    "backtrace-sourcemap": "./src/cli.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "All Rights Reserved",
+  "bugs": {
+    "url": "https://github.com/KrzaQ/backtrace-sourcemap-helper/issues"
+  },
+  "homepage": "https://github.com/KrzaQ/backtrace-sourcemap-helper#readme"
+}
