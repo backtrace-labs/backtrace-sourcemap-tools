@@ -1,5 +1,5 @@
 {
-  "name": "backtrace-sourcemap",
+  "name": "backtrace-sourcemap-tools",
   "version": "0.1.0",
   "description": "",
   "main": "src/cli.js",
