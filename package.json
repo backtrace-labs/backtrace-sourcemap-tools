@@ -1,23 +1,23 @@
 {
   "name": "backtrace-sourcemap-tools",
   "version": "0.1.0",
-  "description": "",
+  "description": "A collection of tools easing SourceMap handlng.",
   "main": "src/cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/KrzaQ/backtrace-sourcemap-helper.git"
-  },
   "bin": {
     "backtrace-sourcemap": "./src/cli.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:backtrace-labs/backtrace-sourcemap-tools.git"
+  },
   "keywords": [],
-  "author": "",
+  "author": "Backtrace I/O <team@backtrace.io>",
   "license": "All Rights Reserved",
   "bugs": {
-    "url": "https://github.com/KrzaQ/backtrace-sourcemap-helper/issues"
+    "url": "https://github.com/backtrace-team/backtrace-sourcemap-tools/issues"
   },
-  "homepage": "https://github.com/KrzaQ/backtrace-sourcemap-helper#readme"
+  "homepage": "https://github.com/backtrace-team/backtrace-sourcemap-tools#readme"
 }
