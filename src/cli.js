@@ -11,12 +11,6 @@ const f = {
   writeFile: util.promisify(fs.writeFile),
 };
 
-function usage() {
-  console.error(`usage: ./backtrace-sourcemap ` +
-    `[generate-uuids|upload-sourcemaps] <config_file> <destination_file>`);
-  process.exit(1);
-}
-
 async function loadPackageConfig(file) {
   return JSON.parse(await f.readFile(file));
 }
@@ -72,8 +66,8 @@ async function httpRequest(opts, postData) {
   });
 }
 
-async function uploadSourceMap(map, uuid, url) {
-  console.log(`Uploading ${map} (${uuid})...`);
+async function uploadSourceMap(fileName, uuid, url) {
+  console.log(`Uploading ${fileName} (${uuid})...`);
 
   const parsedUrl = new URL(url.replace('SYMBOLICATION_ID', uuid));
 
@@ -85,7 +79,7 @@ async function uploadSourceMap(map, uuid, url) {
     method: 'POST',
   }
 
-  await httpRequest(opts, fs.readFileSync(map));
+  await httpRequest(opts, fs.readFileSync(fileName));
 }
 
 async function uploadSourceMaps(uuids, url) {
@@ -94,47 +88,102 @@ async function uploadSourceMaps(uuids, url) {
   }
 }
 
-async function main(action, configFile, destFile)
+function fileHash(filename, algorithm = 'md5') {
+  return new Promise((resolve, reject) => {
+    let shasum = crypto.createHash(algorithm);
+    try {
+      let s = fs.ReadStream(filename)
+      s.on('data', function (data) {
+        shasum.update(data)
+      })
+      s.on('end', function () {
+        const hash = shasum.digest('hex')
+        return resolve(hash);
+      })
+    } catch (error) {
+      return reject('calc fail');
+    }
+  });
+}
+
+async function handleGenerate(configFile, destFile) {
+  if (configFile === undefined || destFile === undefined)
+    usage();
+  const data = await loadPackageConfig(configFile);
+  let uuids = {};
+  for(let idx in data.backtrace.sourcemap.files) {
+    const file = data.backtrace.sourcemap.files[idx];
+    uuids[file] = await generateUuid(file, file);
+    fs.writeFileSync('.backtrace_cache', JSON.stringify(uuids));
+    console.log(`Writing UUIDs to ${destFile}`);
+    await writeUuidsToJsFile(uuids, destFile);
+  }
+}
+
+async function handleUploadCached(cacheFileName, configFile) {
+  if (configFile === undefined)
+    usage();
+  const data = await loadPackageConfig(configFile);
+  let uuids = JSON.parse(fs.readFileSync(cacheFileName));
+  console.log(`Uploading Source Maps...`);
+  await uploadSourceMaps(uuids, data.backtrace.sourcemap.upload);
+}
+
+async function handleUploadGenerate(configFile, dir) {
+  const data = await loadPackageConfig(configFile);
+  console.error(data.backtrace)
+  const url = data.backtrace.sourcemap.upload;
+  fs.readdirSync(dir).forEach(async fn =>{
+    if (!fn.match(/.*\.map$/))
+      return;
+    const path = `${dir}/${fn.replace(/.map$/, '')}`
+    const hash = await fileHash(path);
+    const uuid = hash.slice( 0,  8) + '-' +
+                 hash.slice( 8, 12) + '-' +
+                 hash.slice(12, 16) + '-' +
+                 hash.slice(16, 20) + '-' +
+                 hash.slice(20, 32);
+    console.log(`Uploading sourcemap '${path}' with UUID: ${uuid}`);
+    await uploadSourceMap(path, uuid, url);
+  });
+}
+
+async function handleUpload(...params) {
+  const cacheFileName = '.backtrace_cache';
+
+  if(fs.existsSync(cacheFileName)) {
+    return await handleUploadCached(cacheFileName, ...params);
+  } else {
+    return await handleUploadGenerate(...params);
+  }
+}
+
+const handlers = {
+  'generate': handleGenerate,
+  'upload': handleUpload,
+  'upload-cached': handleUploadCached,
+  'upload-generate': handleUploadGenerate,
+};
+
+function usage() {
+  console.error(`usage: ./backtrace-sourcemap ` +
+    `[action] [...actionParams]`);
+  console.error('');
+  console.error('Actions:');
+  console.error('generate [config_file] [destination_file]');
+  console.error('upload [config_file] [destination_file]');
+
+  process.exit(1);
+}
+
+async function main(action, ...params)
 {
   try {
-    if (action === undefined)
+    const handler = handlers[action];
+    if (handler === undefined)
       usage();
 
-    const data = await loadPackageConfig(configFile);
-
-    if (action == 'generate-uuids') {
-      if (configFile === undefined || destFile === undefined || action === undefined)
-        usage();
-      let uuids = {};
-      for(let idx in data.backtrace.sourcemap.files) {
-        const file = data.backtrace.sourcemap.files[idx];
-        uuids[file] = await generateUuid(file, file);
-        fs.writeFileSync('.backtrace_cache', JSON.stringify(uuids));
-        console.log(`Writing UUIDs to ${destFile}`);
-        await writeUuidsToJsFile(uuids, destFile);
-      }
-    } else if (action == 'upload-sourcemaps') {
-      if (configFile === undefined || destFile === undefined || action === undefined)
-        usage();
-      let uuids = JSON.parse(fs.readFileSync('.backtrace_cache'));
-      console.log(`Uploading Source Maps...`);
-      await uploadSourceMaps(uuids, data.backtrace.sourcemap.upload);
-    } else if (action == 'upload') {
-      if (configFile === undefined || action === undefined)
-        usage();
-      const gen = require('../index');
-      let uuids = {};
-      for(let idx in data.backtrace.sourcemap.files) {
-        const obj = data.backtrace.sourcemap.files[idx];
-        console.log('obj: ' + obj);
-        uuids[obj.map] = await gen.generateUuid({ file: obj.source });
-        console.log(`Derived UUID for ${obj.source}: ${uuids[obj.map]}`);
-      }
-      console.log(`Uploading Source Maps...`);
-      await uploadSourceMaps(uuids, data.backtrace.sourcemap.upload);
-    } else {
-      usage();
-    }
+    await handler(...params);
   } catch(e) {
     console.error(`Error: ${e}`);
     throw e;

@@ -28,7 +28,6 @@ async function generateUuid(fileName) {
 }
 
 async function getCurrentScriptUuid() {
-  console.log(`getCurrentScriptUuid(): ${typeof window}`);
   if (typeof window === undefined) {
     return await hashData(document.currentScript);
   } else {
