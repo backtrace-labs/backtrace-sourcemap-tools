@@ -41,6 +41,16 @@ the build folder (in the example: `./dist`):
     "upload": "./node_modules/.bin/backtrace-sourcemap upload package.json dist",
 ```
 
+#### Set up automatic UUID generation in backtrace-node
+
+```js
+var client = bt.initialize({
+  endpoint: '...',
+  token: '...'
+});
+client.setSymbolication(); // this line enables automatic UUID generation
+```
+
 #### Upload specific files
 
 ##### Add files to be uploaded to the .backtrace.sourcemap node in `package.json`.
