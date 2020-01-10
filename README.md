@@ -23,14 +23,38 @@ correct value.
 ```json
   "backtrace": {
     "sourcemap": {
-      "files": [
-        "dist/bundle.js.map"
-      ],
       "upload": "http://yolo.sp.backtrace.io:6097/post?format=sourcemap&token=7ca86617fc63e0ae1a708a55eab89f31f68d2c053d69a90657b3c1f121202895&project=cts&universe=cts&symbolication_id=SYMBOLICATION_ID"
     },
 ```
 
-### Add GUID generation build scripts (optional)
+### Set up sourcemaps upload
+
+There are two ways of doing this.
+
+#### Upload all artifact .map files
+
+Use `backtrace-sourcemap` with action `upload` and parameters `package.json` and
+the build folder (in the example: `./dist`):
+
+```json
+    "build": "my current build command && npm run upload",
+    "upload": "./node_modules/.bin/backtrace-sourcemap upload package.json dist",
+```
+
+#### Upload specific files
+
+##### Add files to be uploaded to the .backtrace.sourcemap node in `package.json`.
+
+```json
+  "backtrace": {
+    "sourcemap": {
+      "files": [
+        "dist/bundle.js.map"
+      ],
+    },
+```
+
+##### Add GUID generation build scripts (optional)
 This step is optional, but recommended for readability.
 
 ```json
@@ -38,7 +62,7 @@ This step is optional, but recommended for readability.
     "upload": "npx backtrace-sourcemap upload-sourcemaps package.json src/backtrace_uuid.js",
 ```
 
-### Add the generated attribute to the report
+##### Add the generated attribute to the report
 
 ```js
 const backtrace_uuid = require('../backtrace_uuid');
