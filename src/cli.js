@@ -69,7 +69,21 @@ async function httpRequest(opts, postData) {
 async function uploadSourceMap(fileName, uuid, url) {
   console.log(`Uploading ${fileName} (${uuid})...`);
 
-  const parsedUrl = new URL(url.replace('SYMBOLICATION_ID', uuid));
+  function generateUrl() {
+    const symPart = 'symbolication_id=' + uuid;
+
+    if (url.includes('SYMBOLICATION_ID')) {
+      url = url.replace('SYMBOLICATION_ID', uuid);
+    } else if (url.endsWith('?')) {
+      url += symPart;
+    } else if (url.includes('?')) {
+      url += '&' + symPart;
+    } else {
+      url += '?' + symPart;
+    }
+    return new URL(url);
+  };
+  const parsedUrl = generateUrl();
 
   const opts = {
     hostname: parsedUrl.hostname,

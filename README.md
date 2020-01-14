@@ -23,7 +23,7 @@ correct value.
 ```json
   "backtrace": {
     "sourcemap": {
-      "upload": "http://yolo.sp.backtrace.io:6097/post?format=sourcemap&token=7ca86617fc63e0ae1a708a55eab89f31f68d2c053d69a90657b3c1f121202895&project=cts&universe=cts&symbolication_id=SYMBOLICATION_ID"
+      "upload": "https://<universe>.sp.backtrace.io:6098/post?format=sourcemap&token=<token>&project=<project>&universe=<universe>"
     },
 ```
 
