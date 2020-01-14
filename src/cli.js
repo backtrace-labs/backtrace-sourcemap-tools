@@ -150,15 +150,16 @@ async function handleUploadGenerate(configFile, dir) {
   fs.readdirSync(dir).forEach(async fn =>{
     if (!fn.match(/.*\.map$/))
       return;
-    const path = `${dir}/${fn.replace(/.map$/, '')}`
-    const hash = await fileHash(path);
+    const mapPath = `${dir}/${fn}`
+    const jsPath = `${dir}/${fn.replace(/.map$/, '')}`
+    const hash = await fileHash(jsPath);
     const uuid = hash.slice( 0,  8) + '-' +
                  hash.slice( 8, 12) + '-' +
                  hash.slice(12, 16) + '-' +
                  hash.slice(16, 20) + '-' +
                  hash.slice(20, 32);
-    console.log(`Uploading sourcemap '${path}' with UUID: ${uuid}`);
-    await uploadSourceMap(path, uuid, url);
+    console.log(`Uploading sourcemap '${mapPath}' with UUID: ${uuid}`);
+    await uploadSourceMap(mapPath, uuid, url);
   });
 }
 
